@@ -1,0 +1,52 @@
+{
+  "name": "ccls-for-ttcn",
+  "description": "ccls for TTCN3",
+  "author": "jag",
+  "repository": "TBD",
+  "license": "idgaf",
+  "engines": {
+    "vscode": "^1.62.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:ttcn3"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "restart_server",
+        "title": "Restart ccls-for-ttcn3"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "TTCN3 Server Configuration",
+      "properties": {
+        "jsonServer.exampleConfiguration": {
+          "scope": "resource",
+          "type": "string",
+          "default": "You can override this message."
+        }
+      }
+    }
+  },
+  "main": "./client/out/extension",
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -b",
+    "watch": "tsc -b -w"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.6",
+    "@types/vscode": "^1.62.0",
+    "@typescript-eslint/eslint-plugin": "^5.3.0",
+    "@typescript-eslint/parser": "^5.3.0",
+    "eslint": "^8.2.0",
+    "typescript": "^4.4.4"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^7.0.0"
+  }
+}

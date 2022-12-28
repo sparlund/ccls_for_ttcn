@@ -1,0 +1,43 @@
+module test001
+{
+    // type set S {
+    //     float s
+    // }
+    // type record MyRecordType {
+    //     S s optional,
+    //     boolean field2
+    // }
+    // const integer const_int1 := 10;
+    // const integer const_int2 := 10;
+    // const integer const_int3 := const_int1 + const_int2;
+    function func_func2(){}
+    function func_func3(){}
+    function func_func4(){}
+    function func_func1()
+    {
+    	// var integer an := 1;
+    	// if(an == 1)
+    	// {
+    	// 	setverdict(pass);
+    	// }
+    	// else if (const_int1 == 10)
+    	// {
+    	// 	setverdict(fail);
+    	// }
+    }
+    testcase TC1() runs on componentIdentifier
+    {
+    	func_func1();
+        func_func4();
+        var integer a := 1;
+    }
+    // control
+    // {
+    // 	var MyRecordType mrt :=
+    // 	{
+    // 		s := s,
+    // 		field2 := false
+    // 	}
+    // 	execute(tc_001());
+    // }
+}
