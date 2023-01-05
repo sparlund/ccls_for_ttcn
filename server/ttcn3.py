@@ -117,7 +117,7 @@ class Visitor(ttcn3Visitor):
     def visitFunctionDef(self, ctx:ttcn3Parser.FunctionDefContext):
         self.symbolTable[self.filename][ctx.getChild(1).getText()] = [ctx.getChild(1).getSymbol().line,ctx.getChild(1).getSymbol().column+1]
 
-filename = 'test.ttcn'
+filename = '../test.ttcn'
 inputStream = antlr4.FileStream(filename);
 lexer = ttcn3Lexer(inputStream)
 stream = antlr4.CommonTokenStream(lexer)

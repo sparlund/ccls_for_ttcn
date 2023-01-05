@@ -4,6 +4,7 @@
   "author": "jag",
   "repository": "TBD",
   "license": "idgaf",
+  "version": "0.11.3",
   "engines": {
     "vscode": "^1.62.0"
   },
@@ -11,7 +12,8 @@
     "Other"
   ],
   "activationEvents": [
-    "onLanguage:ttcn3"
+    "onLanguage:ttcn3",
+    "onLanguage:ttcn"
   ],
   "contributes": {
     "commands": [

@@ -1,0 +1,9 @@
+module test001
+{
+    function func2()
+    {
+    }
+    function func1()
+    {
+    }
+}
