@@ -2,7 +2,7 @@
 
 import * as net from "net";
 import * as path from "path";
-import { ExtensionContext, ExtensionMode, workspace } from "vscode";
+import { ExtensionContext, ExtensionMode, workspace,commands, window, StatusBarAlignment } from "vscode";
 import {
     LanguageClient,
     LanguageClientOptions,
@@ -13,12 +13,11 @@ let client: LanguageClient;
 
 function getClientOptions(): LanguageClientOptions {
     return {
-        // Register the server for plain text documents
         documentSelector: [
             { scheme: "file", language: "ttcn" },
             { scheme: "untitled", language: "ttcn" },
         ],
-        outputChannelName: "ccls for ttcn3",
+        outputChannelName: "ttls",
         synchronize: {
             // Notify the server about file changes to '.clientrc files contain in the workspace
             fileEvents: workspace.createFileSystemWatcher("**/.clientrc"),
@@ -40,11 +39,25 @@ function startLangServer(
     return new LanguageClient(command, serverOptions, getClientOptions());
 }
 
+function createStatusBarItem(context: ExtensionContext)
+{
+    const myCommandId = 'start_server';
+    const item = window.createStatusBarItem(StatusBarAlignment.Left);
+    item.command = myCommandId;
+    context.subscriptions.push(item);
+    item.text = `$(call-outgoing) ttls`;
+    item.tooltip = `Click to start indexing`;
+    item.show();
+}
+
 export function activate(context: ExtensionContext): void {
-        const cwd = path.join(__dirname, "..", "..");
-        const pythonPath = "/usr/bin/python3.8"
-        client = startLangServer(pythonPath, ["-m", "server"], cwd);
-    context.subscriptions.push(client.start());
+        // Python 3.8 is required by pygls
+        const python_interpreter = workspace.getConfiguration("ttls").get<string>("python_interpreter");
+        // wd is where the extension is located
+        const wd = workspace.getConfiguration("ttls").get<string>("wd");
+        client = startLangServer(python_interpreter, ["-m", "server"], wd);
+        createStatusBarItem(context) ;
+        context.subscriptions.push(client.start());
 }
 
 export function deactivate(): Thenable<void> {

@@ -1,3 +1,6 @@
+# Import pygls and lsprotocol locally to not have be more portable
+import sys
+sys.path.append("..")
 from lsprotocol.types import (TEXT_DOCUMENT_COMPLETION, TEXT_DOCUMENT_DID_CHANGE,
                                TEXT_DOCUMENT_DID_CLOSE, TEXT_DOCUMENT_DID_OPEN,
                                TEXT_DOCUMENT_HOVER,
@@ -18,7 +21,7 @@ from lsprotocol.types import (CompletionItem, CompletionList, CompletionOptions,
                              Definition, DefinitionOptions,DefinitionParams,
                              Range, Location, LocationLink
 )
-from pygls.server import LanguageServer
+from pygls.pygls.server import LanguageServer
 
 import antlr4
 from server.ttcn3Visitor import ttcn3Visitor
@@ -26,19 +29,17 @@ from server.ttcn3Parser import ttcn3Parser
 from server.ttcn3Lexer import ttcn3Lexer
 import logging
 import uuid
-import asyncio
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 
-# Why can't I import ttcn3Visitor??
-# re-generate to fit this version of python3.8-antlr4-runtime..?
 class Visitor(ttcn3Visitor):
     # we don't care about scopes we're FREAKS!
     # Structure of symbol table dict:
     # filename:
-    #   stream --> stream
-    #   functionnName (string)
+    #   stream --> stream. We use stream when looping through tokens
+    #   functionnName (string):
     #       line, column (list of integers)
     def __init__(self,filename,stream):
         self.filename = filename
@@ -78,30 +79,18 @@ class Visitor(ttcn3Visitor):
         self.symbolTable[self.filename][ctx.getChild(1).getText()] = [ctx.getChild(1).getSymbol().line,ctx.getChild(1).getSymbol().column+1]
 
 # Init server
-
+import time
 class ttcn3LanguageServer(LanguageServer):
-    CMD_RESTART_SERVER = 'restart_server'
-    CONFIGURATION_SECTION = 'ttcn3Server'
+    CMD_START_SERVER = 'start_server'
 
     def __init__(self, *args):
         super().__init__(*args)
         self.symbolTable = dict()
-        # Run lexer and parser on each file
-        self.filenames = ['/home/johan/ttcn/ttcn3-vscode-lsp/test.ttcn', '/home/johan/ttcn/ttcn3-vscode-lsp/test2.ttcn']
-        for filename in self.filenames:
-            inputStream = antlr4.FileStream(filename);
-            lexer = ttcn3Lexer(inputStream)
-            stream = antlr4.CommonTokenStream(lexer)
-            parser = ttcn3Parser(stream)
-            tree = parser.ttcn3module()
-            visitor = Visitor(filename,stream)
-            visitor.visitTtcn3module(tree)
-            # Add local current symbol table to global symbol table
-            self.symbolTable = {**visitor.symbolTable,**self.symbolTable}
+        self.filenames = []
 
 
 
-ttcn_server = ttcn3LanguageServer('ccls-for-ttcn3', 'v2.0')
+ttcn_server = ttcn3LanguageServer('ttls', 'v2.0')
 
 
 
@@ -133,6 +122,9 @@ def jonas2(server: ttcn3LanguageServer, params: DefinitionParams):
             # Check for each file if that symbol table has symbol by that name and position
 
             # Check if we have indexed this file at all
+            logger.debug("uri=%s",uri)
+            logger.debug("keys: {}".format(' '.join(map(str, server.symbolTable.keys()))))
+
             if uri in server.symbolTable.keys():
                 logger.debug("uri found in symbol table")
                 # Now check what token we have at that position
@@ -174,7 +166,33 @@ async def did_open(ls, params: DidOpenTextDocumentParams):
     """Text document did open notification."""
 
 
-@ttcn_server.command(ttcn3LanguageServer.CMD_RESTART_SERVER)
-def restart_server(ls: ttcn3LanguageServer, *args):
-    ls.progress().create()
-    ls.show_message('beep bop bop')
+
+
+@ttcn_server.command(ttcn3LanguageServer.CMD_START_SERVER)
+def start_server(ls: ttcn3LanguageServer, *args):
+        # Run lexer and parser on each file
+        token = str(uuid.uuid4())
+        # Create
+        ls.progress.create(token)
+        # Begin
+        ls.progress.begin(token, WorkDoneProgressBegin(title='ttls'))
+        # Run lexer and parser on each file. Empty old files lol
+        ls.filenames = []
+        for path in Path('/home/johan/ttcn/ttcn3-vscode-lsp').rglob('*.ttcn'):
+            ls.filenames.append(str(path))
+            
+        for counter,filename in enumerate(ls.filenames):
+            inputStream = antlr4.FileStream(filename);
+            lexer = ttcn3Lexer(inputStream)
+            stream = antlr4.CommonTokenStream(lexer)
+            parser = ttcn3Parser(stream)
+            tree = parser.ttcn3module()
+            visitor = Visitor(filename,stream)
+            visitor.visitTtcn3module(tree)
+            # Add local current symbol table to global symbol table
+            ls.symbolTable = {**visitor.symbolTable,**ls.symbolTable}
+            ls.progress.report(
+                token,
+                WorkDoneProgressReport(message='{}/{}'.format(counter+1,len(ls.filenames))))
+            time.sleep(1.0)
+        ls.progress.end(token, WorkDoneProgressEnd(message='Finished'))

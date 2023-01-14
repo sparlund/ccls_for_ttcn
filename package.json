@@ -1,5 +1,5 @@
 {
-  "name": "ccls-for-ttcn",
+  "name": "ttls",
   "description": "ccls for TTCN3",
   "author": "jag",
   "repository": "TBD",
@@ -18,18 +18,20 @@
   "contributes": {
     "commands": [
       {
-        "command": "restart_server",
-        "title": "Restart ccls-for-ttcn3"
+        "command": "start_server",
+        "title": "Start ttls"
       }
     ],
     "configuration": {
       "type": "object",
-      "title": "TTCN3 Server Configuration",
       "properties": {
-        "jsonServer.exampleConfiguration": {
-          "scope": "resource",
+        "ttls.python_interpreter": {
           "type": "string",
-          "default": "You can override this message."
+          "default": "/usr/bin/python3.8"
+        },
+        "ttls.wd": {
+          "type": "string",
+          "default": "/home/johan/ttcn/ttcn3-vscode-lsp/"
         }
       }
     }

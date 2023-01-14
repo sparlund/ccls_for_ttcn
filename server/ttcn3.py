@@ -85,34 +85,28 @@ class Visitor(ttcn3Visitor):
     def __init__(self,filename):
         self.filename = filename
         self.symbolTable[self.filename] = dict()
-
     def visitTtcn3module(self, ctx:ttcn3Parser.Ttcn3moduleContext):
         # Visit and save current module name
         # self.visitModuleId(ctx.getChild(1))
         self.visitModuleDefinitionsList(ctx.getChild(3))
         return 0
-
     def visitModuleId(self, ctx:ttcn3Parser.ModuleIdContext):
         # maybe todo: introduce scope concept
         self.current_moduleId = ctx.getText()
-
     def visitModuleDefinitionsList(self, ctx:ttcn3Parser.ModuleDefinitionsListContext):
         # print("in visitModuleDefinitionsList: type(ctx)=",type(ctx))
         for i in range(0,ctx.getChildCount()):
             # print("in visitModuleDefinitionsList: type(ctx.getChild("+str(i)+"))=",type(ctx.getChild(i)))
             self.visitModuleDefinition(ctx.getChild(i))
-
     def visitModuleDefinition(self, ctx:ttcn3Parser.ModuleDefinitionContext):
         for i in range(0,ctx.getChildCount()):
                 self.visitCommonDef(ctx.getChild(i))
-
     def visitCommonDef(self, ctx:ttcn3Parser.CommonDefContext):
         # print("in visitCommonDef: type(ctx)=",type(ctx))
         for i in range(0, ctx.getChildCount()):
             # print("in visitCommonDef: type(ctx.getChild("+str(i)+"))",type(ctx.getChild(i)))
             if isinstance(ctx.getChild(i),ttcn3Parser.FunctionDefContext):
                 self.visitFunctionDef(ctx.getChild(i))
-
     # # Besök ALLA noder ner till functionDef???
     def visitFunctionDef(self, ctx:ttcn3Parser.FunctionDefContext):
         self.symbolTable[self.filename][ctx.getChild(1).getText()] = [ctx.getChild(1).getSymbol().line,ctx.getChild(1).getSymbol().column+1]
